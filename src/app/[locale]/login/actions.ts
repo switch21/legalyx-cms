@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+import { redirect } from '@/i18n/routing'
 
 export async function login(formData: FormData) {
   const email = formData.get('email') as string
@@ -18,7 +18,7 @@ export async function login(formData: FormData) {
     return { error: error.message }
   }
 
-  // Redirect to home page
+  // Redirect to dashboard
   redirect('/')
 }
 
