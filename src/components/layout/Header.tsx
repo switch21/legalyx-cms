@@ -1,8 +1,9 @@
-import { Bell, Search, LogOut } from 'lucide-react';
+import { Search, LogOut } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { logout } from '@/app/[locale]/login/actions';
 import { SidebarToggle } from '@/components/layout/Sidebar';
 import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
+import NotificationBell from '@/components/layout/NotificationBell';
 import { getRoleLabel } from '@/lib/roles';
 
 export default async function Header() {
@@ -56,10 +57,7 @@ export default async function Header() {
       <div className="flex items-center space-x-2 md:space-x-4 shrink-0">
         <LanguageSwitcher />
         
-        <button className="relative p-2 text-gray-400 hover:text-primary transition-colors" aria-label="Notifications">
-          <Bell className="w-5 h-5 md:w-6 md:h-6" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-secondary rounded-full border-2 border-white"></span>
-        </button>
+        <NotificationBell />
         
         <div className="flex items-center space-x-2 md:space-x-3 pl-2 md:pl-4 border-l border-gray-200">
           <div className="text-right hidden md:block">

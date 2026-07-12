@@ -2,6 +2,7 @@ import Sidebar, { SidebarProvider } from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
 import { OnboardingProvider } from '@/components/onboarding/OnboardingProvider';
 import OnboardingOverlay from '@/components/onboarding/OnboardingOverlay';
+import Breadcrumb from '@/components/ui/Breadcrumb';
 import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
@@ -28,6 +29,7 @@ export default async function DashboardLayout({
           <div className="flex-1 flex flex-col min-w-0">
             <Header />
             <main className="flex-1 overflow-auto p-4 md:p-8">
+              <Breadcrumb />
               {children}
             </main>
           </div>
