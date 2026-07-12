@@ -2,6 +2,7 @@ import { User, ShieldCheck, Settings, Database } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import ProfileForm from '@/components/settings/ProfileForm';
 import PasswordForm from '@/components/settings/PasswordForm';
+import { getRoleLabel } from '@/lib/roles';
 
 export default async function ParametresPage() {
   let profile: { firstName: string; lastName: string; email: string; role: string } | null = null;
@@ -22,7 +23,7 @@ export default async function ParametresPage() {
         firstName: p?.first_name || '',
         lastName: p?.last_name || '',
         email: user.email || '',
-        role: p?.role || '',
+        role: getRoleLabel(p?.role),
       };
     }
   } catch (err: any) {

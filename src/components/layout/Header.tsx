@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { logout } from '@/app/[locale]/login/actions';
 import { SidebarToggle } from '@/components/layout/Sidebar';
 import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
+import { getRoleLabel } from '@/lib/roles';
 
 export default async function Header() {
   const supabase = await createClient();
@@ -15,7 +16,6 @@ export default async function Header() {
 
     if (user) {
       name = user.email || 'Utilisateur';
-      roleLabel = 'Agent';
 
       // Use direct query instead of RPC — avoids dependency on a migration
       const { data: profile } = await supabase
@@ -27,8 +27,9 @@ export default async function Header() {
       if (profile) {
         const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
         name = fullName || user.email || 'Utilisateur';
-        roleLabel = profile.role || 'Agent';
       }
+
+      roleLabel = getRoleLabel(profile?.role);
     }
   } catch (error) {
     // Graceful fallback: keep default name/role on any auth or DB error

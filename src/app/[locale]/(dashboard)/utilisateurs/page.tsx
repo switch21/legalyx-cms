@@ -1,5 +1,6 @@
 import { Users, UserPlus, Search, ShieldCheck, Mail, ShieldAlert, Database } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import { getRoleLabel, getRoleBadgeClasses } from '@/lib/roles';
 
 export default async function UtilisateursPage() {
   let users: any[] = [];
@@ -26,15 +27,7 @@ export default async function UtilisateursPage() {
     dataError = err.message || 'Erreur de chargement des utilisateurs';
   }
 
-  const getRoleBadge = (role: string) => {
-    switch(role) {
-      case 'ADMIN': return 'bg-red-50 text-red-700 border border-red-100';
-      case 'JUGE': return 'bg-amber-50 text-amber-700 border border-amber-100';
-      case 'GREFFIER': return 'bg-blue-50 text-blue-700 border border-blue-100';
-      case 'AVOCAT': return 'bg-purple-50 text-purple-700 border border-purple-100';
-      default: return 'bg-gray-50 text-gray-700 border border-gray-100';
-    }
-  };
+
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -126,8 +119,8 @@ export default async function UtilisateursPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${getRoleBadge(user.role)}`}>
-                            {user.role}
+                          <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${getRoleBadgeClasses(user.role)}`}>
+                            {getRoleLabel(user.role)}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-xs text-gray-500">
