@@ -18,9 +18,7 @@ export default function OnboardingOverlay() {
 
     const init = async () => {
       try {
-        const { driver } = await import('driver.js')
-        await import('driver.js/dist/driver.css')
-
+        const driverModule = await import('driver.js')
         if (cancelled) return
 
         const steps = [
@@ -89,6 +87,16 @@ export default function OnboardingOverlay() {
           },
         ]
 
+        // Load CSS separately to avoid SSR issues
+        try {
+          await import('driver.js/dist/driver.css')
+        } catch {
+          // CSS might already be loaded or fail silently
+        }
+
+        if (cancelled) return
+
+        const { driver } = driverModule
         driverRef.current = driver({
           showProgress: true,
           steps,
@@ -106,29 +114,26 @@ export default function OnboardingOverlay() {
           allowClose: false,
         })
 
-        // Small delay for DOM to settle
         setTimeout(() => {
-          driverRef.current?.drive()
-        }, 300)
+          if (!cancelled) driverRef.current?.drive()
+        }, 500)
       } catch {
-        // driver.js not available, skip onboarding
         completeOnboarding()
       }
     }
 
-    const timer = setTimeout(init, 600)
+    const timer = setTimeout(init, 800)
 
     return () => {
       cancelled = true
       clearTimeout(timer)
       if (driverRef.current) {
-        driverRef.current.destroy()
+        try { driverRef.current.destroy() } catch {}
         driverRef.current = null
       }
     }
   }, [showOnboarding, pathname, completeOnboarding, t])
 
-  if (!showOnboarding || pathname !== '/') return null
-
+  // Never render anything on server
   return null
 }

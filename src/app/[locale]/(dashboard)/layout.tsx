@@ -1,6 +1,5 @@
 import Sidebar, { SidebarProvider, SidebarToggle } from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
-import PageTransition from '@/components/animation/PageTransition';
 import { OnboardingProvider } from '@/components/onboarding/OnboardingProvider';
 import OnboardingOverlay from '@/components/onboarding/OnboardingOverlay';
 import { NotificationProvider } from '@/components/NotificationProvider';
@@ -21,9 +20,7 @@ export default function DashboardLayout({
               <div className="flex-1 flex flex-col min-w-0">
                 <Header />
                 <main className="flex-1 overflow-auto p-4 md:p-8">
-                  <PageTransition>
-                    {children}
-                  </PageTransition>
+                  {children}
                 </main>
               </div>
             </div>

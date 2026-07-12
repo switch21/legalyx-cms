@@ -6,7 +6,6 @@ import { Home, FolderOpen, Calendar, FileText, Users, Settings, ShieldCheck, X, 
 import { useTheme } from '@/components/ThemeProvider';
 import { useTranslations } from 'next-intl';
 import { useOnboarding } from '@/components/onboarding/OnboardingProvider';
-import { motion, AnimatePresence } from 'framer-motion';
 
 // Context
 type SidebarContextType = {
@@ -88,19 +87,13 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile overlay with animation */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm"
-            onClick={closeMobile}
-          />
-        )}
-      </AnimatePresence>
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={closeMobile}
+        />
+      )}
 
       {/* Sidebar */}
       <aside
@@ -170,10 +163,7 @@ export default function Sidebar() {
                 {(!isCollapsed || isOpen) && <span className="text-sm">{t(item.labelKey)}</span>}
                 {/* Active indicator */}
                 {active && isCollapsed && !isOpen && (
-                  <motion.div
-                    layoutId="sidebar-active-indicator"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-secondary rounded-r-full"
-                  />
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-secondary rounded-r-full" />
                 )}
                 {/* Tooltip for collapsed desktop */}
                 {isCollapsed && !isOpen && (

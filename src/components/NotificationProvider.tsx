@@ -1,8 +1,8 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { X, Bell, Info, AlertTriangle } from 'lucide-react'
+import { X, Info, AlertTriangle } from 'lucide-react'
 
 interface Notification {
   id: string
@@ -40,10 +40,18 @@ const ACTION_LABELS: Record<string, string> = {
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([])
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const [mounted, setMounted] = useState(false)
+
+  // Safe client-only Supabase client
+  const supabase = useMemo(() => {
+    if (typeof window === 'undefined') return null
+    return createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }, [])
+
+  useEffect(() => { setMounted(true) }, [])
 
   const dismiss = useCallback((id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id))
@@ -58,8 +66,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(timer)
   }, [notifications])
 
-  // Subscribe to Supabase Realtime for audit_logs
+  // Subscribe to Supabase Realtime for audit_logs (client only)
   useEffect(() => {
+    if (!supabase) return
+
     const channel = supabase
       .channel('audit-realtime')
       .on('postgres_changes', {
@@ -89,33 +99,35 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     <NotificationContext.Provider value={{ notifications, dismiss, unreadCount: notifications.length }}>
       {children}
 
-      {/* Toast container */}
-      <div className="fixed top-4 right-4 z-[100] space-y-2 max-w-sm w-full pointer-events-none">
-        {notifications.map((n) => (
-          <div
-            key={n.id}
-            className="pointer-events-auto bg-white border border-gray-200 rounded-xl shadow-lg p-4 flex items-start gap-3 animate-in slide-in-from-right-2 duration-300 hover:shadow-xl transition-shadow"
-            role="alert"
-          >
-            <div className={`p-2 rounded-lg shrink-0 ${
-              n.type === 'warning' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'
-            }`}>
-              {n.type === 'warning' ? <AlertTriangle className="w-4 h-4" /> : <Info className="w-4 h-4" />}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">{n.title}</p>
-              <p className="text-xs text-gray-500 mt-0.5 truncate">{n.message}</p>
-            </div>
-            <button
-              onClick={() => dismiss(n.id)}
-              className="p-1 hover:bg-gray-100 rounded-lg text-gray-400 shrink-0 transition-colors"
-              aria-label="Fermer la notification"
+      {/* Toast container — only render on client */}
+      {mounted && (
+        <div className="fixed top-4 right-4 z-[100] space-y-2 max-w-sm w-full pointer-events-none">
+          {notifications.map((n) => (
+            <div
+              key={n.id}
+              className="pointer-events-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-4 flex items-start gap-3 animate-in slide-in-from-right-2 duration-300 hover:shadow-xl transition-shadow"
+              role="alert"
             >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        ))}
-      </div>
+              <div className={`p-2 rounded-lg shrink-0 ${
+                n.type === 'warning' ? 'bg-amber-50 text-amber-600' : 'bg-blue-50 text-blue-600'
+              }`}>
+                {n.type === 'warning' ? <AlertTriangle className="w-4 h-4" /> : <Info className="w-4 h-4" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{n.title}</p>
+                <p className="text-xs text-gray-500 mt-0.5 truncate">{n.message}</p>
+              </div>
+              <button
+                onClick={() => dismiss(n.id)}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-400 shrink-0 transition-colors"
+                aria-label="Fermer la notification"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </NotificationContext.Provider>
   )
 }
