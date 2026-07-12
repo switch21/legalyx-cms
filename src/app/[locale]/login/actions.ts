@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { getLocale } from 'next-intl/server'
 
 export async function login(formData: FormData) {
   const email = formData.get('email') as string
@@ -18,12 +19,15 @@ export async function login(formData: FormData) {
     return { error: error.message }
   }
 
-  // Redirect to dashboard
-  redirect('/')
+  // Redirect to locale-prefixed dashboard to avoid an extra
+  // middleware hop where the i18n redirect could be lost.
+  const locale = await getLocale()
+  redirect(`/${locale}`)
 }
 
 export async function logout() {
   const supabase = await createClient()
   await supabase.auth.signOut()
-  redirect('/login')
+  const locale = await getLocale()
+  redirect(`/${locale}/login`)
 }

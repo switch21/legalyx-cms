@@ -13,10 +13,26 @@ export async function updateSession(request: NextRequest, response: NextResponse
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            request.cookies.set(name, value)
+          )
+
+          // CRITICAL: Preserve redirect if i18n already produced one.
+          // Without this, NextResponse.next() for the original URL (e.g. `/`)
+          // would overwrite the i18n redirect to `/fr`, and Next.js would
+          // fail to match any route for `/` → "This page couldn't load".
+          if (
+            supabaseResponse.status >= 300 &&
+            supabaseResponse.status < 400
+          ) {
+            const location = supabaseResponse.headers.get('location')!
+            supabaseResponse = NextResponse.redirect(
+              new URL(location, request.url)
+            )
+          } else {
+            supabaseResponse = NextResponse.next({ request })
+          }
+
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
