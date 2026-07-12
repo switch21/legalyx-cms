@@ -1,5 +1,6 @@
 'use client'
-import { useRouter, usePathname, useSearchParams } from '@/i18n/routing'
+import { useRouter, usePathname } from '@/i18n/routing'
+import { useSearchParams } from 'next/navigation'
 
 export default function StatusFilter() {
   const router = useRouter()
