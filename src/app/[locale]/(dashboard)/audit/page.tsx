@@ -1,5 +1,6 @@
 import { ShieldAlert, Database } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import { getTranslations } from 'next-intl/server';
 import Pagination from '@/components/ui/Pagination';
 import SearchBar from '@/components/ui/SearchBar';
 import ActionFilter from '@/components/ui/ActionFilter';
@@ -10,6 +11,10 @@ export default async function AuditPage({
   searchParams: Promise<{ page?: string; q?: string; action?: string }>;
 }) {
   const params = await searchParams;
+  const [t, tc] = await Promise.all([
+    getTranslations('Audit'),
+    getTranslations('Common'),
+  ]);
   const page = Math.max(1, parseInt(params.page || '1', 10));
   const search = params.q || null;
   const actionFilter = params.action || null;
@@ -89,16 +94,16 @@ export default async function AuditPage({
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <ShieldAlert className="w-6 h-6 text-red-600" />
-          Journal d'Audit Sécurisé
+          {t('title')}
         </h1>
-        <p className="text-sm text-gray-500 mt-1">Registre inaltérable des actions du système (Conformité légale).</p>
+        <p className="text-sm text-gray-500 mt-1">{t('subtitle')}</p>
       </div>
 
       {dataError && (
         <div className="p-4 rounded-2xl bg-red-50 border border-red-100 flex items-center gap-3 text-sm text-red-800">
           <Database className="w-5 h-5 text-red-600 shrink-0" />
           <div>
-            <p className="font-semibold">Données indisponibles</p>
+            <p className="font-semibold">{tc('dataUnavailable')}</p>
             <p className="text-xs text-red-700/80 mt-0.5">{dataError}</p>
           </div>
         </div>
@@ -116,10 +121,10 @@ export default async function AuditPage({
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50/30 text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
-                    <th className="px-6 py-4 font-medium">Horodatage</th>
-                    <th className="px-6 py-4 font-medium">Utilisateur</th>
-                    <th className="px-6 py-4 font-medium">Action</th>
-                    <th className="px-6 py-4 font-medium">Cible</th>
+                    <th className="px-6 py-4 font-medium">{t('columnTimestamp')}</th>
+                    <th className="px-6 py-4 font-medium">{t('columnUser')}</th>
+                    <th className="px-6 py-4 font-medium">{t('columnAction')}</th>
+                    <th className="px-6 py-4 font-medium">{t('columnTarget')}</th>
                     <th className="px-6 py-4 font-medium">Détails</th>
                   </tr>
                 </thead>
@@ -149,13 +154,13 @@ export default async function AuditPage({
         ) : !dataError ? (
           <div className="text-center py-16 text-gray-400">
             <ShieldAlert className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p className="text-sm font-medium">Aucune action enregistrée</p>
-            <p className="text-xs mt-1">Les actions des utilisateurs apparaîtront ici.</p>
+            <p className="text-sm font-medium">{t('noLogs')}</p>
+            <p className="text-xs mt-1">{t('noLogsDesc')}</p>
           </div>
         ) : null}
 
         <div className="p-4 border-t border-gray-100 bg-gray-50/30 text-xs text-gray-500 text-center">
-          Conformément à la loi n°2010/012, ces journaux sont conservés pendant 10 ans.
+          {t('retention')}
         </div>
       </div>
     </div>

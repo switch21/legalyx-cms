@@ -1,6 +1,7 @@
 import { Plus, Filter, Folder, Database } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { createClient } from '@/lib/supabase/server';
+import { getTranslations } from 'next-intl/server';
 import Pagination from '@/components/ui/Pagination';
 import SearchBar from '@/components/ui/SearchBar';
 import StatusFilter from '@/components/ui/StatusFilter';
@@ -12,6 +13,10 @@ export default async function DossiersPage({
   searchParams: Promise<{ page?: string; q?: string; status?: string }>;
 }) {
   const params = await searchParams;
+  const [t, tc] = await Promise.all([
+    getTranslations('Dossiers'),
+    getTranslations('Common'),
+  ]);
   const page = Math.max(1, parseInt(params.page || '1', 10));
   const search = params.q || null;
   const statusFilter = params.status || null;
@@ -69,15 +74,15 @@ export default async function DossiersPage({
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Registre des Dossiers</h1>
-          <p className="text-sm text-gray-500 mt-1">Gérez et consultez l'ensemble des affaires en cours.</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('subtitle')}</p>
         </div>
         <Link 
           href="/dossiers/nouveau" 
           className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors text-sm font-medium shadow-sm"
         >
           <Plus className="w-4 h-4" />
-          Nouveau Dossier
+          {t('newDossier')}
         </Link>
       </div>
 
@@ -85,7 +90,7 @@ export default async function DossiersPage({
         <div className="p-4 rounded-2xl bg-red-50 border border-red-100 flex items-center gap-3 text-sm text-red-800">
           <Database className="w-5 h-5 text-red-600 shrink-0" />
           <div>
-            <p className="font-semibold">Données indisponibles</p>
+            <p className="font-semibold">{tc('dataUnavailable')}</p>
             <p className="text-xs text-red-700/80 mt-0.5">{dataError}</p>
           </div>
         </div>
@@ -101,7 +106,7 @@ export default async function DossiersPage({
             <StatusFilter />
             <button className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors text-sm font-medium">
               <Filter className="w-4 h-4" />
-              Filtres
+              {t('filters')}
             </button>
           </div>
         </div>
@@ -112,12 +117,12 @@ export default async function DossiersPage({
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50/50 text-xs text-gray-500 uppercase tracking-wider">
-                    <th className="px-6 py-4 font-medium">N° Dossier</th>
-                    <th className="px-6 py-4 font-medium">Intitulé de l'affaire</th>
-                    <th className="px-6 py-4 font-medium">Juridiction</th>
-                    <th className="px-6 py-4 font-medium">Date d'ouverture</th>
-                    <th className="px-6 py-4 font-medium">Statut</th>
-                    <th className="px-6 py-4 font-medium text-right">Actions</th>
+                    <th className="px-6 py-4 font-medium">{t('columnNumber')}</th>
+                    <th className="px-6 py-4 font-medium">{t('columnTitle')}</th>
+                    <th className="px-6 py-4 font-medium">{t('columnJuridiction')}</th>
+                    <th className="px-6 py-4 font-medium">{t('columnDate')}</th>
+                    <th className="px-6 py-4 font-medium">{t('columnStatus')}</th>
+                    <th className="px-6 py-4 font-medium text-right">{t('columnActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-sm">
@@ -144,7 +149,7 @@ export default async function DossiersPage({
                           href={`/dossiers/${dossier.id}`}
                           className="text-primary font-medium hover:text-primary/80 transition-colors inline-block"
                         >
-                          Consulter
+                          {t('view')}
                         </Link>
                       </td>
                     </tr>
@@ -160,11 +165,11 @@ export default async function DossiersPage({
           <div className="text-center py-16 text-gray-400">
             <Folder className="w-12 h-12 mx-auto mb-3 opacity-40" />
             <p className="text-sm font-medium">
-              {search ? `Aucun résultat pour "${search}"` : 'Aucun dossier enregistré'}
+              {search ? `${t('noResults')} "${search}"` : t('noDossiers')}
             </p>
             {!search && (
               <Link href="/dossiers/nouveau" className="text-sm text-primary hover:text-primary/80 mt-2 inline-block font-medium">
-                + Créer un dossier
+                {t('create')}
               </Link>
             )}
           </div>
