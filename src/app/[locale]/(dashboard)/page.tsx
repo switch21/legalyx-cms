@@ -1,6 +1,8 @@
 import { Briefcase, Gavel, FileText, TrendingUp, AlertCircle, Clock, Database } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { createClient } from '@/lib/supabase/server';
+import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 
 export default async function Dashboard() {
   let activeDossiersCount = 0;
@@ -8,13 +10,11 @@ export default async function Dashboard() {
   let totalAudiencesCount = 0;
   let upcomingAudiences: any[] = [];
   let recentAlerts: any[] = [];
-  let dataLoaded = false;
   let dataError: string | null = null;
 
   try {
     const supabase = await createClient();
     
-    // Dashboard stats via RPC
     const { data: statsData, error: statsErr } = await supabase.rpc('get_dashboard_stats');
     if (!statsErr && statsData && statsData.length > 0) {
       activeDossiersCount = statsData[0].dossiers_count || 0;
@@ -22,7 +22,6 @@ export default async function Dashboard() {
       todayAudiencesCount = statsData[0].today_audiences_count || 0;
     }
 
-    // Upcoming audiences via RPC (selective)
     const { data: audData, error: audErr } = await supabase.rpc('get_upcoming_audiences', { p_limit: 5 });
     if (!audErr && audData) {
       upcomingAudiences = audData.map((a: any) => ({
@@ -35,7 +34,6 @@ export default async function Dashboard() {
       }));
     }
 
-    // Recent audit logs (selective columns)
     const { data: logs, error: logsErr } = await supabase
       .from('audit_logs')
       .select('id, action, created_at, details')
@@ -52,26 +50,26 @@ export default async function Dashboard() {
         time: new Date(log.created_at).toLocaleString('fr-FR'),
       }));
     }
-
-    dataLoaded = true;
   } catch (error: any) {
     console.error('Dashboard data fetch error:', error);
     dataError = error.message || 'Erreur de connexion à la base de données';
   }
 
+  const t = await getTranslations('Dashboard');
+
   const stats = [
-    { title: 'Dossiers Actifs', value: activeDossiersCount.toLocaleString(), icon: Briefcase, color: 'bg-blue-50 text-blue-600' },
-    { title: "Audiences du Jour", value: todayAudiencesCount.toLocaleString(), icon: Gavel, color: 'bg-amber-50 text-amber-600' },
-    { title: 'Total Audiences', value: totalAudiencesCount.toLocaleString(), icon: FileText, color: 'bg-emerald-50 text-emerald-600' },
-    { title: 'Taux d\'Activité', value: activeDossiersCount > 0 ? `${Math.min(100, Math.round((todayAudiencesCount / Math.max(totalAudiencesCount, 1)) * 100))}%` : 'N/A', icon: TrendingUp, color: 'bg-purple-50 text-purple-600' },
+    { title: t('activeDossiers'), value: activeDossiersCount.toLocaleString(), icon: Briefcase, color: 'bg-blue-50 text-blue-600' },
+    { title: t('todayAudiences'), value: todayAudiencesCount.toLocaleString(), icon: Gavel, color: 'bg-amber-50 text-amber-600' },
+    { title: t('totalAudiences'), value: totalAudiencesCount.toLocaleString(), icon: FileText, color: 'bg-emerald-50 text-emerald-600' },
+    { title: t('activityRate'), value: activeDossiersCount > 0 ? `${Math.min(100, Math.round((todayAudiencesCount / Math.max(totalAudiencesCount, 1)) * 100))}%` : 'N/A', icon: TrendingUp, color: 'bg-purple-50 text-purple-600' },
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center">
+    <div className="space-y-8">
+      <div className="flex justify-between items-center" data-onboarding="dashboard-title">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Tableau de bord</h1>
-          <p className="text-gray-500 mt-1">Résumé de l'activité de votre juridiction.</p>
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">{t('title')}</h1>
+          <p className="text-gray-500 mt-1">{t('subtitle')}</p>
         </div>
       </div>
 
@@ -79,16 +77,16 @@ export default async function Dashboard() {
         <div className="p-4 rounded-2xl bg-red-50 border border-red-100 flex items-center gap-3 text-sm text-red-800">
           <Database className="w-5 h-5 text-red-600 shrink-0" />
           <div>
-            <p className="font-semibold">Données indisponibles</p>
+            <p className="font-semibold">{t('noActivity')}</p>
             <p className="text-xs text-red-700/80 mt-0.5">{dataError}</p>
           </div>
         </div>
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" data-onboarding="stats-grid">
         {stats.map((stat, i) => (
-          <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+          <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300 cursor-pointer">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-500">{stat.title}</p>
@@ -103,15 +101,15 @@ export default async function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Prochaines Audiences */}
+        {/* Upcoming Audiences */}
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
               <Clock className="w-5 h-5 text-secondary" />
-              Prochaines Audiences
+              {t('upcomingAudiences')}
             </h2>
             <Link href="/audiences" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">
-              Voir tout
+              {t('seeAll')}
             </Link>
           </div>
           
@@ -120,15 +118,15 @@ export default async function Dashboard() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-gray-100 text-sm text-gray-500">
-                    <th className="pb-3 font-medium">Heure</th>
-                    <th className="pb-3 font-medium">N° Dossier</th>
-                    <th className="pb-3 font-medium">Nature</th>
-                    <th className="pb-3 font-medium">Salle</th>
+                    <th className="pb-3 font-medium">{t('time')}</th>
+                    <th className="pb-3 font-medium">{t('caseNumber')}</th>
+                    <th className="pb-3 font-medium">{t('nature')}</th>
+                    <th className="pb-3 font-medium">{t('room')}</th>
                   </tr>
                 </thead>
                 <tbody className="text-sm divide-y divide-gray-50">
                   {upcomingAudiences.map((audience) => (
-                    <tr key={audience.id} className="hover:bg-gray-50 transition-colors group">
+                    <tr key={audience.id} className="hover:bg-gray-50 transition-colors duration-200 group">
                       <td className="py-4 font-medium text-gray-900">{audience.time}</td>
                       <td className="py-4 text-primary font-medium">{audience.case}</td>
                       <td className="py-4">
@@ -145,43 +143,43 @@ export default async function Dashboard() {
           ) : (
             <div className="text-center py-12 text-gray-400">
               <Clock className="w-10 h-10 mx-auto mb-3 opacity-40" />
-              <p className="text-sm font-medium">Aucune audience programmée</p>
+              <p className="text-sm font-medium">{t('noAudiences')}</p>
               <Link href="/audiences/planifier" className="text-sm text-primary hover:text-primary/80 mt-2 inline-block">
-                Planifier une audience
+                {t('scheduleAudience')}
               </Link>
             </div>
           )}
         </div>
 
-        {/* Alertes & Actions Rapides */}
+        {/* Recent Activity + Quick Actions */}
         <div className="space-y-8">
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-secondary" />
-              Activité Récente
+              {t('recentActivity')}
             </h2>
             {recentAlerts.length > 0 ? (
               <div className="space-y-4">
                 {recentAlerts.map((alert) => (
-                  <div key={alert.id} className={`p-4 rounded-xl border-l-4 border-blue-400 bg-blue-50 text-blue-900`}>
+                  <div key={alert.id} className="p-4 rounded-xl border-l-4 border-blue-400 bg-blue-50 text-blue-900">
                     <p className="text-sm font-medium">{alert.text}</p>
                     <p className="text-xs text-blue-700/60 mt-1">{alert.time}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-400 text-center py-6">Aucune activité récente.</p>
+              <p className="text-sm text-gray-400 text-center py-6">{t('noActivity')}</p>
             )}
           </div>
 
           <div className="bg-primary rounded-2xl p-6 shadow-md text-white">
-            <h2 className="text-xl font-semibold mb-4">Actions Rapides</h2>
+            <h2 className="text-xl font-semibold mb-4">{t('quickActions')}</h2>
             <div className="space-y-3">
               <Link href="/dossiers/nouveau" className="block w-full py-3 px-4 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-medium transition-colors text-center backdrop-blur-sm">
-                + Nouveau Dossier
+                {t('newDossier')}
               </Link>
               <Link href="/audiences/planifier" className="block w-full py-3 px-4 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-medium transition-colors text-center backdrop-blur-sm">
-                Planifier une Audience
+                {t('scheduleAudience')}
               </Link>
             </div>
           </div>

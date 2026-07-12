@@ -2,6 +2,7 @@ import { Bell, Search, User, LogOut } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { logout } from '@/app/[locale]/login/actions';
 import { SidebarToggle } from '@/components/layout/Sidebar';
+import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
 
 export default async function Header() {
   const supabase = await createClient();
@@ -14,7 +15,6 @@ export default async function Header() {
     name = user.email || 'Utilisateur';
     roleLabel = 'Agent';
 
-    // Use SECURITY DEFINER function to bypass RLS issues on Vercel
     const { data: profile } = await supabase
       .rpc('get_my_profile');
 
@@ -28,7 +28,7 @@ export default async function Header() {
     <header className="h-16 md:h-20 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-8 shadow-sm gap-3">
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <SidebarToggle />
-        <div className="hidden sm:flex items-center bg-gray-50 rounded-full px-4 py-2 w-full max-w-md focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+        <div className="hidden sm:flex items-center bg-gray-50 rounded-full px-4 py-2 w-full max-w-md focus-within:ring-2 focus-within:ring-primary/20 transition-all" data-onboarding="header-search">
           <Search className="w-5 h-5 text-gray-400 shrink-0" />
           <input 
             type="text" 
@@ -38,13 +38,15 @@ export default async function Header() {
         </div>
       </div>
       
-      <div className="flex items-center space-x-3 md:space-x-6 shrink-0">
-        <button className="relative p-2 text-gray-400 hover:text-primary transition-colors">
+      <div className="flex items-center space-x-2 md:space-x-4 shrink-0">
+        <LanguageSwitcher />
+        
+        <button className="relative p-2 text-gray-400 hover:text-primary transition-colors" aria-label="Notifications">
           <Bell className="w-5 h-5 md:w-6 md:h-6" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-secondary rounded-full border-2 border-white"></span>
         </button>
         
-        <div className="flex items-center space-x-2 md:space-x-3 pl-3 md:pl-6 border-l border-gray-200">
+        <div className="flex items-center space-x-2 md:space-x-3 pl-2 md:pl-4 border-l border-gray-200">
           <div className="text-right hidden md:block">
             <p className="text-sm font-medium text-gray-700">{name}</p>
             <p className="text-xs text-primary font-bold">{roleLabel}</p>
