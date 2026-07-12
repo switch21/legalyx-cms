@@ -6,22 +6,33 @@ import LanguageSwitcher from '@/components/i18n/LanguageSwitcher';
 
 export default async function Header() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
 
   let name = 'Visiteur';
   let roleLabel = 'Utilisateur';
 
-  if (user) {
-    name = user.email || 'Utilisateur';
-    roleLabel = 'Agent';
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
 
-    const { data: profile } = await supabase
-      .rpc('get_my_profile');
+    if (user) {
+      name = user.email || 'Utilisateur';
+      roleLabel = 'Agent';
 
-    if (profile && profile.length > 0) {
-      name = `${profile[0].first_name} ${profile[0].last_name}`.trim() || user.email || 'Utilisateur';
-      roleLabel = profile[0].role;
+      // Use direct query instead of RPC — avoids dependency on a migration
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('first_name, last_name, role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile) {
+        const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+        name = fullName || user.email || 'Utilisateur';
+        roleLabel = profile.role || 'Agent';
+      }
     }
+  } catch (error) {
+    // Graceful fallback: keep default name/role on any auth or DB error
+    console.error('Header: failed to load user profile', error);
   }
 
   return (
