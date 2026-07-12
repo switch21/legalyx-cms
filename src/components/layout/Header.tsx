@@ -21,7 +21,7 @@ export default async function Header() {
       const { data: profile, error: profileError } = await supabase.rpc('get_my_profile');
 
       if (profileError) {
-        console.error('Header: get_my_profile RPC failed', profileError);
+        roleLabel = 'ERR: ' + profileError.message;
       }
 
       if (profile && !profileError) {
