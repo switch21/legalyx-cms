@@ -10,25 +10,17 @@ export default async function Header() {
   let roleLabel = 'Utilisateur';
 
   if (user) {
-    console.log('[Header] user.id:', user.id);
     name = user.email || 'Utilisateur';
     roleLabel = 'Agent';
 
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('first_name, last_name, role')
-      .eq('id', user.id)
-      .single();
+    // Use SECURITY DEFINER function to bypass RLS issues on Vercel
+    const { data: profile } = await supabase
+      .rpc('get_my_profile');
 
-    console.log('[Header] profile:', profile);
-    console.log('[Header] profileError:', profileError);
-
-    if (profile) {
-      name = `${profile.first_name} ${profile.last_name}`.trim() || user.email || 'Utilisateur';
-      roleLabel = profile.role;
+    if (profile && profile.length > 0) {
+      name = `${profile[0].first_name} ${profile[0].last_name}`.trim() || user.email || 'Utilisateur';
+      roleLabel = profile[0].role;
     }
-  } else {
-    console.log('[Header] No user found');
   }
 
   return (
