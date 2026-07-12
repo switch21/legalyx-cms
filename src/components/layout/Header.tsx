@@ -17,14 +17,12 @@ export default async function Header() {
     if (user) {
       name = user.email || 'Utilisateur';
 
-      // Use RPC with SECURITY DEFINER to bypass RLS and reliably read own profile
-      const { data: profile, error: profileError } = await supabase.rpc('get_my_profile');
+      // Use RPC that returns JSONB — avoids PostgreSQL TABLE column ambiguity
+      const { data: profile, error: profileError } = await supabase.rpc('get_my_profile_json');
 
       if (profileError) {
         roleLabel = 'ERR: ' + profileError.message;
-      }
-
-      if (profile && !profileError) {
+      } else if (profile) {
         const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
         name = fullName || user.email || 'Utilisateur';
         roleLabel = getRoleLabel(profile.role);

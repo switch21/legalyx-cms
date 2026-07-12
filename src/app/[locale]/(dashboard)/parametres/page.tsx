@@ -13,7 +13,7 @@ export default async function ParametresPage() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
-      const { data: p, error } = await supabase.rpc('get_my_profile');
+      const { data: p, error } = await supabase.rpc('get_my_profile_json');
 
       if (error) {
         dataError = 'Erreur de chargement du profil: ' + error.message;
