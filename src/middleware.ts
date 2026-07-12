@@ -12,5 +12,5 @@ export default async function middleware(request: any) {
 }
 
 export const config = {
-  matcher: ['/', '/(fr|en)/:path*']
+  matcher: ['/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)']
 };
