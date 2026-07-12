@@ -2,8 +2,10 @@ import { ArrowLeft, Calendar, FileText, Shield, User, MapPin, Database } from 'l
 import { Link } from '@/i18n/routing';
 import { createClient } from '@/lib/supabase/server';
 import PrintButton from '@/components/layout/PrintButton';
+import DeleteDossierButton from '@/components/dossiers/DeleteDossierButton';
 import DossierStatusForm from './DossierStatusForm';
 import DossierTimeline from './DossierTimeline';
+import { getStatusLabel } from '@/lib/roles';
 
 export default async function DossierDetailPage({
   params
@@ -97,7 +99,10 @@ export default async function DossierDetailPage({
           <ArrowLeft className="w-5 h-5" />
           <span>Retour au registre</span>
         </Link>
-        <PrintButton />
+        <div className="flex items-center gap-2">
+          <DeleteDossierButton dossierId={dossier.id} dossierNumero={dossier.numero} />
+          <PrintButton />
+        </div>
       </div>
 
       <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm space-y-6 relative overflow-hidden print:shadow-none print:border-none print:p-0">
@@ -110,7 +115,7 @@ export default async function DossierDetailPage({
                 {dossier.juridiction}
               </span>
               <span className={`px-3 py-0.5 rounded-full text-xs font-semibold border ${getStatusColor(dossier.status)}`}>
-                {dossier.status.replace(/_/g, ' ')}
+                {getStatusLabel(dossier.status)}
               </span>
             </div>
             <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{dossier.titre}</h1>

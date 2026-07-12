@@ -1,4 +1,4 @@
-import { Bell, Search, User, LogOut } from 'lucide-react';
+import { Bell, Search, LogOut } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { logout } from '@/app/[locale]/login/actions';
 import { SidebarToggle } from '@/components/layout/Sidebar';
@@ -10,6 +10,7 @@ export default async function Header() {
 
   let name = 'Visiteur';
   let roleLabel = 'Utilisateur';
+  let initials = 'V';
 
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -26,6 +27,11 @@ export default async function Header() {
         const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
         name = fullName || user.email || 'Utilisateur';
         roleLabel = getRoleLabel(profile.role);
+        // Generate initials
+        const parts = name.split(' ').filter(Boolean);
+        initials = parts.length >= 2
+          ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+          : name.substring(0, 2).toUpperCase();
       }
     }
   } catch (error) {
@@ -60,8 +66,8 @@ export default async function Header() {
             <p className="text-sm font-medium text-gray-700">{name}</p>
             <p className="text-xs text-primary font-bold">{roleLabel}</p>
           </div>
-          <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-            <User className="w-4 h-4 md:w-5 md:h-5" />
+          <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm md:text-base">
+            {initials}
           </div>
           
           <form action={logout} className="inline-block">

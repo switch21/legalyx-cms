@@ -6,11 +6,13 @@ import { Home, FolderOpen, Calendar, FileText, Users, Settings, ShieldCheck, X, 
 import { useTheme } from '@/components/ThemeProvider';
 import { useTranslations } from 'next-intl';
 import { useOnboarding } from '@/components/onboarding/OnboardingProvider';
+import { canSeeRoute } from '@/lib/roles';
 
 // Context
 type SidebarContextType = {
   isOpen: boolean;
   isCollapsed: boolean;
+  userRole: string | null;
   toggleMobile: () => void;
   toggleCollapse: () => void;
   closeMobile: () => void;
@@ -19,6 +21,7 @@ type SidebarContextType = {
 const SidebarContext = createContext<SidebarContextType>({
   isOpen: false,
   isCollapsed: false,
+  userRole: null,
   toggleMobile: () => {},
   toggleCollapse: () => {},
   closeMobile: () => {},
@@ -43,7 +46,7 @@ const bottomItems = [
 ];
 
 // Provider
-export function SidebarProvider({ children }: { children: ReactNode }) {
+export function SidebarProvider({ children, userRole }: { children: ReactNode; userRole: string | null }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -52,7 +55,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const closeMobile = useCallback(() => setIsOpen(false), []);
 
   return (
-    <SidebarContext.Provider value={{ isOpen, isCollapsed, toggleMobile, toggleCollapse, closeMobile }}>
+    <SidebarContext.Provider value={{ isOpen, isCollapsed, userRole, toggleMobile, toggleCollapse, closeMobile }}>
       {children}
     </SidebarContext.Provider>
   );
@@ -74,7 +77,7 @@ export function SidebarToggle() {
 
 // Main Sidebar
 export default function Sidebar() {
-  const { isOpen, isCollapsed, toggleMobile, toggleCollapse, closeMobile } = useSidebar();
+  const { isOpen, isCollapsed, userRole, toggleMobile, toggleCollapse, closeMobile } = useSidebar();
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const t = useTranslations('Sidebar');
@@ -139,7 +142,9 @@ export default function Sidebar() {
 
         {/* Navigation */}
         <nav className="flex-1 p-3 space-y-1 mt-2 overflow-y-auto">
-          {navItems.map((item) => {
+          {navItems
+            .filter(item => canSeeRoute(userRole, item.href))
+            .map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
             return (
@@ -177,7 +182,9 @@ export default function Sidebar() {
 
           {/* Divider + Bottom Items */}
           <div className="pt-4 mt-4 border-t border-white/10">
-            {bottomItems.map((item) => {
+            {bottomItems
+              .filter(item => canSeeRoute(userRole, item.href))
+              .map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
               return (

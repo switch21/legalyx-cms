@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import Pagination from '@/components/ui/Pagination';
 import SearchBar from '@/components/ui/SearchBar';
 import StatusFilter from '@/components/ui/StatusFilter';
+import { getStatusLabel } from '@/lib/roles';
 
 export default async function DossiersPage({
   searchParams,
@@ -135,7 +136,7 @@ export default async function DossiersPage({
                       <td className="px-6 py-4 text-gray-500">{new Date(dossier.date).toLocaleDateString('fr-FR')}</td>
                       <td className="px-6 py-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(dossier.status)}`}>
-                          {dossier.status.replace(/_/g, ' ')}
+                          {getStatusLabel(dossier.status)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">

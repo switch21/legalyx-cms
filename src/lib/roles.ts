@@ -33,3 +33,44 @@ export function getRoleBadgeClasses(role: string | null | undefined): string {
       return 'bg-gray-50 text-gray-700 border border-gray-100';
   }
 }
+
+/**
+ * Permission map: which sidebar routes each role can see.
+ * Routes not listed are visible to everyone (Dashboard, Dossiers, Audiences, Documents, Paramètres).
+ */
+export const ROLE_VISIBLE_ROUTES: Record<string, string[]> = {
+  ADMIN: ['/utilisateurs', '/audit'],
+  GREFFIER: [],
+  JUGE: [],
+  AVOCAT: [],
+  PARTIE: [],
+} as const;
+
+/** Check if a given role can access a specific route in the sidebar. */
+export function canSeeRoute(role: string | null | undefined, href: string): boolean {
+  if (!role) return false;
+  // Routes visible to everyone
+  const openRoutes = ['/', '/dossiers', '/audiences', '/documents', '/parametres'];
+  if (openRoutes.includes(href)) return true;
+  // Check role-specific routes
+  const allowed = ROLE_VISIBLE_ROUTES[role];
+  return allowed ? allowed.includes(href) : false;
+}
+
+/**
+ * Status labels — maps DB enum values to French display labels.
+ * DB enum: dossier_status = 'OUVERT' | 'EN_INSTRUCTION' | 'AUDIENCE' | 'JUGEMENT' | 'ARCHIVE'
+ */
+export const STATUS_LABELS: Record<string, string> = {
+  OUVERT: 'Ouvert',
+  EN_INSTRUCTION: 'En Instruction',
+  AUDIENCE: 'Audience',
+  JUGEMENT: 'Jugement',
+  ARCHIVE: 'Archivé',
+} as const;
+
+/** Return a human-readable French label for a dossier status value. */
+export function getStatusLabel(status: string | null | undefined): string {
+  if (!status) return '';
+  return STATUS_LABELS[status] || status.replace(/_/g, ' ');
+}
