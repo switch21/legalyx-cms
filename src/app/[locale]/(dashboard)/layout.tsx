@@ -3,6 +3,8 @@ import Header from '@/components/layout/Header';
 import { OnboardingProvider } from '@/components/onboarding/OnboardingProvider';
 import OnboardingOverlay from '@/components/onboarding/OnboardingOverlay';
 
+export const dynamic = 'force-dynamic';
+
 export default function DashboardLayout({
   children,
 }: {
