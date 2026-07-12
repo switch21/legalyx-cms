@@ -16,15 +16,78 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #ededed;
-  }
+/* Dark mode via .dark class (controlled by ThemeProvider) */
+.dark {
+  --background: #0f172a;
+  --foreground: #e2e8f0;
+  --primary: #3b82f6;
+  --secondary: #fbbf24;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Dark mode overrides for components */
+.dark .bg-white { background-color: #1e293b !important; }
+.dark .bg-gray-50 { background-color: #0f172a !important; }
+.dark .bg-gray-100 { background-color: #1e293b !important; }
+.dark .bg-gray-200 { background-color: #334155 !important; }
+.dark .border-gray-100 { border-color: #334155 !important; }
+.dark .border-gray-200 { border-color: #475569 !important; }
+.dark .text-gray-900 { color: #f1f5f9 !important; }
+.dark .text-gray-700 { color: #cbd5e1 !important; }
+.dark .text-gray-600 { color: #94a3b8 !important; }
+.dark .text-gray-500 { color: #94a3b8 !important; }
+.dark .text-gray-400 { color: #64748b !important; }
+.dark .placeholder\:text-gray-400::placeholder { color: #64748b !important; }
+.dark .hover\:bg-gray-50:hover { background-color: #1e293b !important; }
+.dark .hover\:bg-gray-100:hover { background-color: #334155 !important; }
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: #334155 !important; }
+.dark .bg-red-50 { background-color: #450a0a !important; }
+.dark .bg-amber-50 { background-color: #451a03 !important; }
+.dark .bg-blue-50 { background-color: #172554 !important; }
+.dark .bg-emerald-50 { background-color: #022c22 !important; }
+.dark .bg-purple-50 { background-color: #2e1065 !important; }
+
+/* Smooth transitions for dark mode */
+.dark header,
+.dark aside,
+.dark main,
+.dark .rounded-2xl,
+.dark .rounded-3xl {
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Print: always light mode */
+@media print {
+  .dark,
+  .dark * {
+    background-color: white !important;
+    color: black !important;
+    border-color: #e5e7eb !important;
+  }
+}
+
+/* Animate-in utility */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Toast animation */
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-in.slide-in-from-right-2 {
+  animation: slideInRight 0.3s ease-out;
 }

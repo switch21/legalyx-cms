@@ -2,7 +2,8 @@
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { Link, usePathname } from '@/i18n/routing';
-import { Home, FolderOpen, Calendar, FileText, Users, Settings, ShieldCheck, X, Menu, ChevronLeft } from 'lucide-react';
+import { Home, FolderOpen, Calendar, FileText, Users, Settings, ShieldCheck, X, Menu, ChevronLeft, Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/components/ThemeProvider';
 
 // Context
 type SidebarContextType = {
@@ -141,6 +142,7 @@ export default function Sidebar() {
                 href={item.href}
                 onClick={closeMobile}
                 title={isCollapsed && !isOpen ? item.label : undefined}
+                aria-current={active ? 'page' : undefined}
                 className={`
                   flex items-center gap-3 p-3 rounded-xl transition-colors relative group
                   ${active
@@ -200,7 +202,34 @@ export default function Sidebar() {
             })}
           </div>
         </nav>
+
+        {/* Footer: Theme toggle */}
+        <div className="p-3 border-t border-white/10">
+          <ThemeToggle collapsed={isCollapsed && !isOpen} />
+        </div>
       </aside>
     </>
+  );
+}
+
+// Theme toggle component
+function ThemeToggle({ collapsed }: { collapsed: boolean }) {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <button
+      onClick={toggleTheme}
+      className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-colors w-full"
+      aria-label={theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre'}
+      title={collapsed ? (theme === 'dark' ? 'Mode clair' : 'Mode sombre') : undefined}
+    >
+      {theme === 'dark' ? (
+        <Sun className="w-5 h-5 shrink-0 text-secondary" />
+      ) : (
+        <Moon className="w-5 h-5 shrink-0 text-secondary/70" />
+      )}
+      {!collapsed && <span className="text-sm text-white/80">
+        {theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
+      </span>}
+    </button>
   );
 }

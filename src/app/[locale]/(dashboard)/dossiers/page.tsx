@@ -1,8 +1,21 @@
-import { Plus, Search, Filter, Folder, Database } from 'lucide-react';
+import { Plus, Filter, Folder, Database } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { createClient } from '@/lib/supabase/server';
+import Pagination from '@/components/ui/Pagination';
+import SearchBar from '@/components/ui/SearchBar';
 
-export default async function DossiersPage() {
+export default async function DossiersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; q?: string; status?: string }>;
+}) {
+  const params = await searchParams;
+  const page = Math.max(1, parseInt(params.page || '1', 10));
+  const search = params.q || null;
+  const statusFilter = params.status || null;
+  const limit = 20;
+  const offset = (page - 1) * limit;
+
   let dossiers: any[] = [];
   let totalCount = 0;
   let dataError: string | null = null;
@@ -10,10 +23,10 @@ export default async function DossiersPage() {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase.rpc('get_dossiers', {
-      p_limit: 20,
-      p_offset: 0,
-      p_search: null,
-      p_status: null,
+      p_limit: limit,
+      p_offset: offset,
+      p_search: search,
+      p_status: statusFilter,
     });
 
     if (error) throw error;
@@ -30,8 +43,8 @@ export default async function DossiersPage() {
     }
 
     const { data: countData } = await supabase.rpc('count_dossiers', {
-      p_search: null,
-      p_status: null,
+      p_search: search,
+      p_status: statusFilter,
     });
     totalCount = (countData as number) || 0;
   } catch (err: any) {
@@ -57,8 +70,8 @@ export default async function DossiersPage() {
           <h1 className="text-2xl font-bold text-gray-900">Registre des Dossiers</h1>
           <p className="text-sm text-gray-500 mt-1">Gérez et consultez l'ensemble des affaires en cours.</p>
         </div>
-        <Link
-          href="/dossiers/nouveau"
+        <Link 
+          href="/dossiers/nouveau" 
           className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors text-sm font-medium shadow-sm"
         >
           <Plus className="w-4 h-4" />
@@ -78,79 +91,89 @@ export default async function DossiersPage() {
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Rechercher par numéro, titre ou intervenant..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-sm"
-            />
+          <SearchBar
+            placeholder="Rechercher par numéro, titre..."
+            className="flex-1"
+          />
+          <div className="flex gap-2">
+            <select className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-700 font-medium">
+              <option value="">Tous les statuts</option>
+              <option value="OUVERT">Ouvert</option>
+              <option value="EN_INSTRUCTION">En Instruction</option>
+              <option value="AUDIENCE">Audience</option>
+              <option value="JUGEMENT">Jugement</option>
+              <option value="ARCHIVE">Archivé</option>
+            </select>
+            <button className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors text-sm font-medium">
+              <Filter className="w-4 h-4" />
+              Filtres
+            </button>
           </div>
-          <button className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors text-sm font-medium">
-            <Filter className="w-4 h-4" />
-            Filtres
-          </button>
         </div>
 
         {dossiers.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50/50 text-xs text-gray-500 uppercase tracking-wider">
-                  <th className="px-6 py-4 font-medium">N° Dossier</th>
-                  <th className="px-6 py-4 font-medium">Intitulé de l'affaire</th>
-                  <th className="px-6 py-4 font-medium">Juridiction</th>
-                  <th className="px-6 py-4 font-medium">Date d'ouverture</th>
-                  <th className="px-6 py-4 font-medium">Statut</th>
-                  <th className="px-6 py-4 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 text-sm">
-                {dossiers.map((dossier) => (
-                  <tr key={dossier.id} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                          <Folder className="w-4 h-4" />
-                        </div>
-                        <span className="font-semibold text-gray-900">{dossier.numero}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 font-medium text-gray-700">{dossier.titre}</td>
-                    <td className="px-6 py-4 text-gray-500">{dossier.juridiction}</td>
-                    <td className="px-6 py-4 text-gray-500">{new Date(dossier.date).toLocaleDateString('fr-FR')}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(dossier.status)}`}>
-                        {dossier.status.replace(/_/g, ' ')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/dossiers/${dossier.id}`}
-                        className="text-primary font-medium hover:text-primary/80 transition-colors inline-block"
-                      >
-                        Consulter
-                      </Link>
-                    </td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/50 text-xs text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 font-medium">N° Dossier</th>
+                    <th className="px-6 py-4 font-medium">Intitulé de l'affaire</th>
+                    <th className="px-6 py-4 font-medium">Juridiction</th>
+                    <th className="px-6 py-4 font-medium">Date d'ouverture</th>
+                    <th className="px-6 py-4 font-medium">Statut</th>
+                    <th className="px-6 py-4 font-medium text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-sm">
+                  {dossiers.map((dossier) => (
+                    <tr key={dossier.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                            <Folder className="w-4 h-4" />
+                          </div>
+                          <span className="font-semibold text-gray-900">{dossier.numero}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-medium text-gray-700">{dossier.titre}</td>
+                      <td className="px-6 py-4 text-gray-500">{dossier.juridiction}</td>
+                      <td className="px-6 py-4 text-gray-500">{new Date(dossier.date).toLocaleDateString('fr-FR')}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusStyle(dossier.status)}`}>
+                          {dossier.status.replace(/_/g, ' ')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Link 
+                          href={`/dossiers/${dossier.id}`}
+                          className="text-primary font-medium hover:text-primary/80 transition-colors inline-block"
+                        >
+                          Consulter
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="p-4 border-t border-gray-100">
+              <Pagination total={totalCount} currentPage={page} limit={limit} />
+            </div>
+          </>
         ) : !dataError ? (
           <div className="text-center py-16 text-gray-400">
             <Folder className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p className="text-sm font-medium">Aucun dossier enregistré</p>
-            <p className="text-xs mt-1">Commencez par créer un nouveau dossier.</p>
-            <Link href="/dossiers/nouveau" className="text-sm text-primary hover:text-primary/80 mt-3 inline-block font-medium">
-              + Créer un dossier
-            </Link>
+            <p className="text-sm font-medium">
+              {search ? `Aucun résultat pour "${search}"` : 'Aucun dossier enregistré'}
+            </p>
+            {!search && (
+              <Link href="/dossiers/nouveau" className="text-sm text-primary hover:text-primary/80 mt-2 inline-block font-medium">
+                + Créer un dossier
+              </Link>
+            )}
           </div>
         ) : null}
-
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-          <p>Affichage de {dossiers.length} dossier{dossiers.length !== 1 ? 's' : ''} sur {totalCount}</p>
-        </div>
       </div>
     </div>
   );

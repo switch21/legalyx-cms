@@ -3,6 +3,7 @@ import { Link } from '@/i18n/routing';
 import { createClient } from '@/lib/supabase/server';
 import PrintButton from '@/components/layout/PrintButton';
 import DossierStatusForm from './DossierStatusForm';
+import DossierTimeline from './DossierTimeline';
 
 export default async function DossierDetailPage({
   params
@@ -40,6 +41,10 @@ export default async function DossierDetailPage({
       if (!audErr && audData) {
         audiences = audData;
       }
+
+      // Fetch status timeline
+      const { data: timelineData } = await supabase.rpc('get_dossier_timeline', { p_dossier_id: id });
+      // timelineData available for future use in client component
     } else {
       notFound = true;
     }
@@ -170,6 +175,11 @@ export default async function DossierDetailPage({
               <div className="pt-2 border-t border-gray-100" id="status-section">
                 <span className="text-xs text-gray-400 block uppercase mb-2">Changer le statut</span>
                 <DossierStatusForm dossierId={dossier.id} currentStatus={dossier.status} />
+              </div>
+
+              <div className="pt-2 border-t border-gray-100">
+                <h3 className="text-xs text-gray-400 block uppercase mb-2">Historique des statuts</h3>
+                <DossierTimeline dossierId={dossier.id} />
               </div>
             </div>
           </div>
