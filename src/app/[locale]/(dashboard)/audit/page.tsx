@@ -1,23 +1,45 @@
-import { ShieldAlert, Download, Filter, Search, Database } from 'lucide-react';
+import { ShieldAlert, Database } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import Pagination from '@/components/ui/Pagination';
+import SearchBar from '@/components/ui/SearchBar';
+import ActionFilter from '@/components/ui/ActionFilter';
 
-export default async function AuditPage() {
+export default async function AuditPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; q?: string; action?: string }>;
+}) {
+  const params = await searchParams;
+  const page = Math.max(1, parseInt(params.page || '1', 10));
+  const search = params.q || null;
+  const actionFilter = params.action || null;
+  const limit = 20;
+  const offset = (page - 1) * limit;
+
   let auditLogs: any[] = [];
+  let totalCount = 0;
   let dataError: string | null = null;
 
   try {
     const supabase = await createClient();
-    
-    const { data: logsData, error } = await supabase
+
+    let query = supabase
       .from('audit_logs')
-      .select('id, user_id, action, entity_type, entity_id, details, created_at')
+      .select('id, user_id, action, entity_type, entity_id, details, created_at', { count: 'exact' })
       .order('created_at', { ascending: false })
-      .limit(20);
+      .range(offset, offset + limit - 1);
+
+    if (actionFilter) {
+      query = query.eq('action', actionFilter);
+    }
+
+    const { data: logsData, error, count } = await query;
 
     if (error) throw error;
+    totalCount = count || 0;
 
     if (logsData && logsData.length > 0) {
-      const userIds = [...new Set(logsData.map(l => l.user_id).filter(Boolean))] as string[];
+      const userIds = [...new Set(logsData.map((l: any) => l.user_id).filter(Boolean))] as string[];
       let userNames: Record<string, string> = {};
 
       if (userIds.length > 0) {
@@ -25,7 +47,7 @@ export default async function AuditPage() {
           .from('profiles')
           .select('id, first_name, last_name')
           .in('id', userIds);
-        
+
         if (profiles) {
           profiles.forEach((p: any) => {
             userNames[p.id] = `${p.first_name} ${p.last_name}`;
@@ -33,31 +55,43 @@ export default async function AuditPage() {
         }
       }
 
-      auditLogs = logsData.map((l: any) => ({
-        id: l.id,
-        timestamp: new Date(l.created_at).toLocaleString('fr-FR'),
-        user: userNames[l.user_id] || 'Système',
-        action: l.action,
-        target: l.entity_type + (l.entity_id ? ` ID: ${l.entity_id.toString().substring(0, 8)}...` : ''),
-        status: 'SUCCESS',
-        details: l.details,
-      }));
+      auditLogs = logsData.map((l: any) => {
+        // Client-side search filter
+        if (search) {
+          const userName = userNames[l.user_id] || 'Système';
+          const hay = `${userName} ${l.action} ${l.entity_type}`.toLowerCase();
+          if (!hay.includes(search.toLowerCase())) return null;
+        }
+        return {
+          id: l.id,
+          timestamp: new Date(l.created_at).toLocaleString('fr-FR'),
+          user: userNames[l.user_id] || 'Système',
+          action: l.action,
+          target: l.entity_type + (l.entity_id ? ` #${l.entity_id.toString().substring(0, 8)}` : ''),
+          details: l.details,
+        };
+      }).filter(Boolean);
     }
   } catch (err: any) {
     console.error('Error fetching audit logs', err);
-    dataError = err.message || 'Erreur de chargement du journal d\'audit';
+    dataError = err.message || "Erreur de chargement du journal d'audit";
   }
 
+  const getActionStyle = (action: string) => {
+    if (action.includes('DELETE') || action.includes('CANCEL')) return 'bg-red-50 text-red-700 border-red-100';
+    if (action.includes('CREATE')) return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+    if (action.includes('UPDATE')) return 'bg-blue-50 text-blue-700 border-blue-100';
+    return 'bg-gray-50 text-gray-700 border-gray-100';
+  };
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 font-sans">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <ShieldAlert className="w-6 h-6 text-red-600" />
-            Journal d'Audit Sécurisé
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">Registre inaltérable des actions du système (Conformité légale).</p>
-        </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <ShieldAlert className="w-6 h-6 text-red-600" />
+          Journal d'Audit Sécurisé
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">Registre inaltérable des actions du système (Conformité légale).</p>
       </div>
 
       {dataError && (
@@ -71,58 +105,47 @@ export default async function AuditPage() {
       )}
 
       <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row gap-4 items-center justify-between">
-          <div className="flex gap-4 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <input 
-                type="text" 
-                placeholder="Rechercher un utilisateur, une action..." 
-                className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-sm"
-              />
-            </div>
-            <select className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700">
-              <option value="">Toutes les actions</option>
-              <option value="CREATE_DOSSIER">Création Dossier</option>
-              <option value="UPDATE_DOSSIER_STATUS">Mise à jour Statut</option>
-              <option value="CREATE_AUDIENCE">Planification Audience</option>
-              <option value="CANCEL_AUDIENCE">Annulation Audience</option>
-              <option value="DELETE_DOSSIER">Suppression Dossier</option>
-            </select>
-          </div>
+        <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          <SearchBar placeholder="Rechercher un utilisateur, une action..." className="flex-1" />
+          <ActionFilter />
         </div>
 
         {auditLogs.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50/30 text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
-                  <th className="px-6 py-4 font-medium">Horodatage</th>
-                  <th className="px-6 py-4 font-medium">Utilisateur</th>
-                  <th className="px-6 py-4 font-medium">Action</th>
-                  <th className="px-6 py-4 font-medium">Cible</th>
-                  <th className="px-6 py-4 font-medium">Statut</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50 text-sm">
-                {auditLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50/50 transition-colors font-mono text-xs">
-                    <td className="px-6 py-4 text-gray-500">{log.timestamp}</td>
-                    <td className="px-6 py-4 font-sans font-medium text-gray-900">{log.user}</td>
-                    <td className="px-6 py-4">
-                      <span className="font-semibold text-primary">{log.action}</span>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600 font-sans">{log.target}</td>
-                    <td className="px-6 py-4">
-                      <span className="px-2.5 py-1 rounded-md font-sans font-medium text-xs bg-emerald-50 text-emerald-700 border border-emerald-100">
-                        {log.status}
-                      </span>
-                    </td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/30 text-xs text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                    <th className="px-6 py-4 font-medium">Horodatage</th>
+                    <th className="px-6 py-4 font-medium">Utilisateur</th>
+                    <th className="px-6 py-4 font-medium">Action</th>
+                    <th className="px-6 py-4 font-medium">Cible</th>
+                    <th className="px-6 py-4 font-medium">Détails</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-50 text-sm">
+                  {auditLogs.map((log: any) => (
+                    <tr key={log.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 text-gray-500 text-xs whitespace-nowrap">{log.timestamp}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900">{log.user}</td>
+                      <td className="px-6 py-4">
+                        <span className={`px-2.5 py-1 rounded-md text-xs font-semibold border ${getActionStyle(log.action)}`}>
+                          {log.action.replace(/_/g, ' ')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-gray-600 text-xs">{log.target}</td>
+                      <td className="px-6 py-4 text-gray-500 text-xs max-w-[200px] truncate">
+                        {log.details ? JSON.stringify(log.details) : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="p-4 border-t border-gray-100">
+              <Pagination total={totalCount} currentPage={page} limit={limit} />
+            </div>
+          </>
         ) : !dataError ? (
           <div className="text-center py-16 text-gray-400">
             <ShieldAlert className="w-12 h-12 mx-auto mb-3 opacity-40" />
@@ -130,8 +153,8 @@ export default async function AuditPage() {
             <p className="text-xs mt-1">Les actions des utilisateurs apparaîtront ici.</p>
           </div>
         ) : null}
-        
-        <div className="p-4 border-t border-gray-100 bg-gray-50/30 text-xs text-gray-500 text-center font-sans">
+
+        <div className="p-4 border-t border-gray-100 bg-gray-50/30 text-xs text-gray-500 text-center">
           Conformément à la loi n°2010/012, ces journaux sont conservés pendant 10 ans.
         </div>
       </div>

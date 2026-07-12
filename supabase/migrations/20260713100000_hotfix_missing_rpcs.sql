@@ -3,7 +3,8 @@
 -- =============================================================================
 
 -- 1. get_my_profile — used by Header.tsx (now uses direct query, but kept for safety)
-CREATE OR REPLACE FUNCTION get_my_profile()
+DROP FUNCTION IF EXISTS get_my_profile();
+CREATE FUNCTION get_my_profile()
 RETURNS TABLE (
   id UUID, first_name TEXT, last_name TEXT,
   role user_role, created_at TIMESTAMPTZ
@@ -26,7 +27,8 @@ END;
 $$;
 
 -- 2. get_dossier_timeline — used by dossiers/[id]/page.tsx
-CREATE OR REPLACE FUNCTION get_dossier_timeline(p_dossier_id UUID)
+DROP FUNCTION IF EXISTS get_dossier_timeline(UUID);
+CREATE FUNCTION get_dossier_timeline(p_dossier_id UUID)
 RETURNS TABLE (
   id UUID, action TEXT, created_at TIMESTAMPTZ, details JSONB
 )
@@ -42,7 +44,8 @@ END;
 $$;
 
 -- 3. log_audit_action — used by documents.ts server action
-CREATE OR REPLACE FUNCTION log_audit_action(
+DROP FUNCTION IF EXISTS log_audit_action(TEXT, TEXT, JSONB, UUID, TEXT);
+CREATE FUNCTION log_audit_action(
   p_action TEXT,
   p_entity_type TEXT,
   p_details JSONB DEFAULT NULL,
@@ -72,7 +75,8 @@ END;
 $$;
 
 -- 4. get_all_documents — used by documents/page.tsx
-CREATE OR REPLACE FUNCTION get_all_documents(
+DROP FUNCTION IF EXISTS get_all_documents(INT, INT);
+CREATE FUNCTION get_all_documents(
   p_limit INT DEFAULT 50,
   p_offset INT DEFAULT 0
 )
@@ -96,7 +100,8 @@ END;
 $$;
 
 -- 5. count_documents — used by documents/page.tsx
-CREATE OR REPLACE FUNCTION count_documents()
+DROP FUNCTION IF EXISTS count_documents();
+CREATE FUNCTION count_documents()
 RETURNS BIGINT
 LANGUAGE plpgsql SECURITY DEFINER
 AS $$
@@ -109,5 +114,6 @@ END;
 $$;
 
 -- 6. RLS: Allow authenticated users to read audit_logs (needed for dashboard activity feed)
+DROP POLICY IF EXISTS "Authenticated users can view audit logs" ON audit_logs;
 CREATE POLICY "Authenticated users can view audit logs" ON audit_logs
   FOR SELECT USING (auth.role() = 'authenticated');

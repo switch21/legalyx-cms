@@ -1,0 +1,16 @@
+{
+  "name": "Legalyx CMS",
+  "short_name": "Legalyx",
+  "description": "Court Management System — Portail Judiciaire Sécurisé",
+  "start_url": "/fr",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#1e3a5f",
+  "icons": [
+    {
+      "src": "/vercel.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

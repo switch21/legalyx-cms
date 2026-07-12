@@ -3,6 +3,7 @@ import { Link } from '@/i18n/routing';
 import { createClient } from '@/lib/supabase/server';
 import Pagination from '@/components/ui/Pagination';
 import SearchBar from '@/components/ui/SearchBar';
+import StatusFilter from '@/components/ui/StatusFilter';
 
 export default async function DossiersPage({
   searchParams,
@@ -96,14 +97,7 @@ export default async function DossiersPage({
             className="flex-1"
           />
           <div className="flex gap-2">
-            <select className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-700 font-medium">
-              <option value="">Tous les statuts</option>
-              <option value="OUVERT">Ouvert</option>
-              <option value="EN_INSTRUCTION">En Instruction</option>
-              <option value="AUDIENCE">Audience</option>
-              <option value="JUGEMENT">Jugement</option>
-              <option value="ARCHIVE">Archivé</option>
-            </select>
+            <StatusFilter />
             <button className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-100 transition-colors text-sm font-medium">
               <Filter className="w-4 h-4" />
               Filtres
