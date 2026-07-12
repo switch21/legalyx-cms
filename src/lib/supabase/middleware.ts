@@ -25,7 +25,13 @@ export async function updateSession(request: NextRequest, response: NextResponse
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    // Session invalid or expired — treat as unauthenticated
+  }
 
   const pathname = request.nextUrl.pathname
   const match = pathname.match(/^\/(fr|en)(\/|$)/)
@@ -52,4 +58,3 @@ export async function updateSession(request: NextRequest, response: NextResponse
 
   return supabaseResponse
 }
-

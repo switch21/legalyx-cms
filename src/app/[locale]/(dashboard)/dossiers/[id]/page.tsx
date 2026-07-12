@@ -1,6 +1,7 @@
-import { ArrowLeft, Calendar, FileText, Printer, Shield, User, MapPin } from 'lucide-react';
+import { ArrowLeft, Calendar, FileText, Shield, User, MapPin } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { createClient } from '@/lib/supabase/server';
+import PrintButton from '@/components/layout/PrintButton';
 
 export default async function DossierDetailPage({
   params
@@ -119,13 +120,7 @@ export default async function DossierDetailPage({
         </Link>
         
         {/* Print Action Trigger */}
-        <button 
-          onClick={() => { window.print(); }} 
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-all text-sm font-semibold shadow-sm active:scale-[0.98]"
-        >
-          <Printer className="w-4 h-4" />
-          Imprimer la Fiche (PDF)
-        </button>
+        <PrintButton />
       </div>
 
       {/* Official Header for Print & Layout */}
