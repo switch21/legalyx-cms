@@ -17,19 +17,18 @@ export default async function Header() {
     if (user) {
       name = user.email || 'Utilisateur';
 
-      // Use direct query instead of RPC — avoids dependency on a migration
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, role')
-        .eq('id', user.id)
-        .maybeSingle();
+      // Use RPC with SECURITY DEFINER to bypass RLS and reliably read own profile
+      const { data: profile, error: profileError } = await supabase.rpc('get_my_profile');
 
-      if (profile) {
-        const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
-        name = fullName || user.email || 'Utilisateur';
+      if (profileError) {
+        console.error('Header: get_my_profile RPC failed', profileError);
       }
 
-      roleLabel = getRoleLabel(profile?.role);
+      if (profile && !profileError) {
+        const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
+        name = fullName || user.email || 'Utilisateur';
+        roleLabel = getRoleLabel(profile.role);
+      }
     }
   } catch (error) {
     // Graceful fallback: keep default name/role on any auth or DB error

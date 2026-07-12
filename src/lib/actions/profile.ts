@@ -15,10 +15,10 @@ export async function updateProfile(formData: FormData) {
     return { error: 'Le prénom et le nom sont requis.' }
   }
 
-  const { error } = await supabase
-    .from('profiles')
-    .update({ first_name: firstName.trim(), last_name: lastName.trim(), updated_at: new Date().toISOString() })
-    .eq('id', user.id)
+  const { error } = await supabase.rpc('update_my_profile', {
+    p_first_name: firstName.trim(),
+    p_last_name: lastName.trim(),
+  })
 
   if (error) return { error: error.message }
   revalidatePath('/parametres')

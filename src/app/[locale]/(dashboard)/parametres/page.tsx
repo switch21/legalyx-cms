@@ -13,18 +13,18 @@ export default async function ParametresPage() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user) {
-      const { data: p } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, role')
-        .eq('id', user.id)
-        .maybeSingle();
+      const { data: p, error } = await supabase.rpc('get_my_profile');
 
-      profile = {
-        firstName: p?.first_name || '',
-        lastName: p?.last_name || '',
-        email: user.email || '',
-        role: getRoleLabel(p?.role),
-      };
+      if (error) {
+        dataError = 'Erreur de chargement du profil: ' + error.message;
+      } else if (p) {
+        profile = {
+          firstName: p.first_name || '',
+          lastName: p.last_name || '',
+          email: user.email || '',
+          role: getRoleLabel(p.role),
+        };
+      }
     }
   } catch (err: any) {
     dataError = err.message || 'Erreur de chargement du profil';
