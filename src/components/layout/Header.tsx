@@ -21,7 +21,7 @@ export default async function Header() {
       const { data: profile, error: profileError } = await supabase.rpc('get_my_profile_json');
 
       if (profileError) {
-        roleLabel = 'ERR: ' + profileError.message;
+        console.error('Header: get_my_profile_json failed', profileError);
       } else if (profile) {
         const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim();
         name = fullName || user.email || 'Utilisateur';
