@@ -181,7 +181,35 @@
     "columnDate": "Creation date",
     "noUsers": "No registered users",
     "noUsersDesc": "Users will appear here after their first login.",
-    "searchPlaceholder": "Search by name, email..."
+    "searchPlaceholder": "Search by name, role...",
+    "userSingular": "user found",
+    "userPlural": "users found",
+    "you": "(You)",
+    "noSearchResults": "No results",
+    "noSearchResultsDesc": "No users match your search.",
+    "addUserTitle": "New User",
+    "addUserSubtitle": "Create an account and assign a role.",
+    "addUserButton": "Add user",
+    "firstNameLabel": "First name",
+    "firstNamePlaceholder": "e.g. John",
+    "lastNameLabel": "Last name",
+    "lastNamePlaceholder": "e.g. Doe",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "e.g. john.doe@legalyx.cm",
+    "passwordLabel": "Temporary password",
+    "passwordPlaceholder": "Minimum 8 characters",
+    "passwordHint": "The user will need to change this password on first login.",
+    "roleLabel": "Role",
+    "editRoleTitle": "Change role",
+    "currentRole": "Current role",
+    "newRole": "New role",
+    "roleOptions": {
+      "ADMIN": "Administrator",
+      "GREFFIER": "Clerk",
+      "JUGE": "Judge / Magistrate",
+      "AVOCAT": "Lawyer",
+      "PARTIE": "Party"
+    }
   },
   "Audit": {
     "title": "Secure Audit Log",
@@ -203,7 +231,9 @@
       "CANCEL_AUDIENCE": "Cancel Hearing",
       "DELETE_DOSSIER": "Delete Case",
       "UPLOAD_DOCUMENT": "Upload Document",
-      "DELETE_DOCUMENT": "Delete Document"
+      "DELETE_DOCUMENT": "Delete Document",
+      "CREATE_USER": "Create User",
+      "UPDATE_USER_ROLE": "Update User Role"
     }
   },
   "Settings": {

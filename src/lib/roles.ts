@@ -48,11 +48,11 @@ export const ROLE_VISIBLE_ROUTES: Record<string, string[]> = {
 
 /** Check if a given role can access a specific route in the sidebar. */
 export function canSeeRoute(role: string | null | undefined, href: string): boolean {
-  if (!role) return false;
-  // Routes visible to everyone
+  // Routes visible to everyone (including when role is unknown)
   const openRoutes = ['/', '/dossiers', '/audiences', '/documents', '/parametres'];
   if (openRoutes.includes(href)) return true;
-  // Check role-specific routes
+  // Role-specific routes require a known role
+  if (!role) return false;
   const allowed = ROLE_VISIBLE_ROUTES[role];
   return allowed ? allowed.includes(href) : false;
 }

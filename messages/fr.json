@@ -181,7 +181,35 @@
     "columnDate": "Date de création",
     "noUsers": "Aucun utilisateur enregistré",
     "noUsersDesc": "Les utilisateurs apparaîtront ici après leur première connexion.",
-    "searchPlaceholder": "Rechercher par nom, email..."
+    "searchPlaceholder": "Rechercher par nom, rôle...",
+    "userSingular": "utilisateur trouvé",
+    "userPlural": "utilisateurs trouvés",
+    "you": "(Vous)",
+    "noSearchResults": "Aucun résultat",
+    "noSearchResultsDesc": "Aucun utilisateur ne correspond à votre recherche.",
+    "addUserTitle": "Nouvel Utilisateur",
+    "addUserSubtitle": "Créez un compte et attribuez-lui un rôle.",
+    "addUserButton": "Ajouter un utilisateur",
+    "firstNameLabel": "Prénom",
+    "firstNamePlaceholder": "Ex: Jean",
+    "lastNameLabel": "Nom",
+    "lastNamePlaceholder": "Ex: Talla",
+    "emailLabel": "Adresse email",
+    "emailPlaceholder": "Ex: jean.talla@legalyx.cm",
+    "passwordLabel": "Mot de passe temporaire",
+    "passwordPlaceholder": "Minimum 8 caractères",
+    "passwordHint": "L'utilisateur devra changer ce mot de passe à la première connexion.",
+    "roleLabel": "Rôle",
+    "editRoleTitle": "Modifier le rôle",
+    "currentRole": "Rôle actuel",
+    "newRole": "Nouveau rôle",
+    "roleOptions": {
+      "ADMIN": "Administrateur",
+      "GREFFIER": "Greffier",
+      "JUGE": "Juge / Magistrat",
+      "AVOCAT": "Avocat",
+      "PARTIE": "Partie"
+    }
   },
   "Audit": {
     "title": "Journal d'Audit Sécurisé",
@@ -203,7 +231,9 @@
       "CANCEL_AUDIENCE": "Annulation Audience",
       "DELETE_DOSSIER": "Suppression Dossier",
       "UPLOAD_DOCUMENT": "Dépôt Document",
-      "DELETE_DOCUMENT": "Suppression Document"
+      "DELETE_DOCUMENT": "Suppression Document",
+      "CREATE_USER": "Création Utilisateur",
+      "UPDATE_USER_ROLE": "Modification Rôle Utilisateur"
     }
   },
   "Settings": {
